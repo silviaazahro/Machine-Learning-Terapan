@@ -72,3 +72,164 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
 
 ## Data Preparation
 
+1.  **Teknik Data Preparation yang Diterapkan:**
+    * **Penanganan Missing Value:**
+        * Teknik: Imputasi dengan nilai median.
+        * Kode Snippet:
+            ```python
+            df['bmi'].fillna(df['bmi'].median(), inplace=True)
+            ```
+        * Proses: Missing value pada fitur `bmi` diisi dengan nilai median dari fitur tersebut.
+        * Alasan: Fitur `bmi` memiliki missing value yang cukup signifikan. Imputasi dengan median dipilih karena median robust terhadap outlier, yang mungkin ada dalam distribusi `bmi`. Hal ini mencegah outlier mendistorsi representasi tipikal dari data.
+    * **Encoding Variabel Kategorikal:**
+        * Teknik: One-Hot Encoding.
+        * Kode Snippet:
+            ```python
+            categorical_cols = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
+            df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+            ```
+        * Proses: Variabel kategorikal diubah menjadi variabel dummy/indikator biner. Parameter `drop_first=True` digunakan untuk menghindari multikolinearitas.
+        * Alasan: Model machine learning umumnya memerlukan input numerik. One-Hot Encoding mengubah kategori menjadi format yang dapat diproses model, tanpa memberikan asumsi ordinalitas yang tidak tepat.
+    * **Penanganan Outlier pada Fitur `gender`:**
+        * Teknik: Penggantian nilai.
+        * Kode Snippet:
+            ```python
+            gender_mode = df['gender'].mode()[0]
+            df['gender'] = df['gender'].replace('Other', gender_mode)
+            ```
+        * Proses: Nilai 'Other' dalam fitur `gender` diganti dengan modus (nilai terbanyak) dari fitur tersebut.
+        * Alasan: Hanya terdapat satu sampel dengan kategori 'Other', yang dapat mengganggu analisis. Menggantinya dengan modus menjaga konsistensi dan mencegah bias.
+    * **Scaling Fitur Numerik:**
+        * Teknik: StandardScaler.
+        * Kode Snippet:
+            ```python
+            numerical_cols = ['age', 'avg_glucose_level', 'bmi']
+            scaler = StandardScaler()
+            df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
+            ```
+        * Proses: Fitur numerik diubah skalanya sehingga memiliki mean 0 dan standar deviasi 1.
+        * Alasan: Scaling menyamakan rentang nilai fitur, yang penting untuk algoritma yang sensitif terhadap skala data (misalnya, algoritma berbasis jarak). Ini mencegah fitur dengan rentang besar mendominasi fitur dengan rentang kecil.
+    * **Pembagian Data:**
+        * Teknik: Train-Test Split.
+        * Kode Snippet:
+            ```python
+            X = df.drop('stroke', axis=1)
+            y = df['stroke']
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+            ```
+        * Proses: Data dibagi menjadi set pelatihan (80%) dan pengujian (20%). Set pelatihan selanjutnya dibagi menjadi set pelatihan (80%) dan validasi (20%).
+        * Alasan: Pembagian ini memungkinkan pelatihan model pada sebagian data dan evaluasi pada data yang belum dilihat sebelumnya (data uji) untuk mengukur generalisasi. Set validasi digunakan untuk validasi model.
+
+## Modelling
+Pada studi kali ini, model yang digunakan adalah **Random Forest**, **XGBoost**, dan **LightGBM** untuk memprediksi kemungkinan seseorang mengidap diabetes berdasarkan fitur-fitur yang ada. Alasan pemilihan ketiga model tersebut adalah:
+- **Random Forest**: Model ini merupakan metode ensemble yang menggabungkan banyak decision tree. Kelebihannya adalah mampu menangani data non-linear dan tidak mudah overfitting. Namun, model ini cenderung lebih lambat dalam proses pelatihan dibandingkan model boosting.
+- **XGBoost**: Merupakan model boosting dengan optimasi regularisasi yang membantu menghindari overfitting. XGBoost bekerja sangat baik pada data tabular dan sering memberikan performa yang tinggi, meskipun waktu pelatihannya lebih lama dibandingkan LightGBM.
+- **LightGBM**: Model boosting yang cepat dan efisien, sangat cocok untuk dataset besar. Namun, LightGBM dapat lebih sensitif terhadap outlier dibandingkan dengan Random Forest dan XGBoost.
+
+Tahapan yang dilakukan pada proses pemodelan adalah sebagai berikut:
+1. **`Load Model`**:
+
+   - **Random Forest** diload dengan parameter `n_estimators=100` dan `random_state=123`:
+     ```python
+     rf_model = RandomForestClassifier(n_estimators=100, random_state=123)
+     ```
+   - **XGBoost** diload dengan parameter `use_label_encoder=False`, `eval_metric='logloss'`, dan `random_state=123`:
+     ```python
+     xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=123)
+     ```
+   - **LightGBM** diload dengan parameter `random_state=123`:
+     ```python
+     lgbm_model = LGBMClassifier(random_state=123)
+     ```
+2. **`Pelatihan Model`**: 
+
+   - **Random Forest** dilatih dengan data latih yaitu `X_train dan y_train`:
+     ```python
+     rf_model.fit(X_train, y_train)
+     ```
+   - **XGBoost** dilatih dengan data latih yaitu `X_train dan y_train`:
+     ```python
+     xgb_model.fit(X_train, y_train)
+     ```
+   - **LightGBM** dilatih dengan data latih yaitu `X_train dan y_train`:
+     ```python
+     lgbm_model.fit(X_train, y_train)
+     ```
+3. **Evaluasi Model**: 
+   Hasil pelatihan dari ketiga model dibandingkan untuk menentukan model terbaik berdasarkan metrik evaluasi.
+
+Berdasarkan hasil evaluasi (lihat bagian Evaluation), **LightGBM Classifier** dipilih sebagai model terbaik. LightGBM menunjukkan akurasi yang kompetitif dengan waktu pelatihan yang lebih cepat dan efisiensi memori yang lebih baik dibandingkan dengan Random Forest dan XGBoost. Dalam konteks prediksi stroke, kecepatan dan efisiensi dapat menjadi faktor penting dalam implementasi praktis.
+
+## Evaluation
+**Evaluasi model** dilakukan menggunakan beberapa metrik utama yang sesuai dengan konteks klasifikasi biner, yaitu **Accuracy**, **Precision**, **Recall**, **F1-Score**, dan **Confusion Matrix**. Metrik ini dipilih karena dataset yang digunakan melibatkan prediksi suatu kondisi (kemungkinan diabetes) di mana keseimbangan antara deteksi positif dan negatif sangat penting.
+
+Metrik Evaluasi yang Digunakan
+1. **`Accuracy Score`** :
+- **Accuracy**: Persentase prediksi yang benar dari seluruh prediksi.
+
+        ```python
+        test_acc = accuracy_score(y_test, y_test_pred)
+        ```
+    
+2. **`Classification Report`** :
+    - **Precision**: Proporsi prediksi positif yang benar.   
+    - **Recall (Sensitivity)**: Proporsi kasus positif yang berhasil dideteksi.
+    - **F1-Score**: Rata-rata harmonik antara Precision dan Recall, yang memberikan gambaran keseimbangan antara keduanya.    
+
+        ```python
+        print("\n--- Classification Report (Test) ---\n", classification_report(y_test, y_test_pred))
+        ```
+
+3. **`Confusion Matrix`** : 
+
+    |                | Predicted Negatif (0) |  Predicted Positif (1) |
+    |----------------|---------------|--------------------|
+    | Actual Negatif (0)  | True Negative (TN)	        | False Positive (FP)              |
+    | Actual Positif (1)        | False Negative (FN)	        | True Positive (TP)              |
+
+     ```python
+    test_cm = confusion_matrix(y_test, y_test_pred)
+    ```
+
+Berikut adalah ringkasan hasil evaluasi berdasarkan prediksi pada data :
+1. Accuracy dan Classification Report :
+
+    | Model          | Accuracy |  Precision |  Recall |  F1-Score |
+    |----------------|---------------|--------------------|-----------------|-------------------|
+    | Random Forest  | 0.9550        | 0.33             | 0.01              | 0.03             |
+    | XGBoost        | 0.9472        | 0.28             | 0.12              | 0.16             |
+    | LightGBM       | 0.9511        | 0.27             | 0.06              | 0.10             |
+
+    Analisis Hasil
+    - Accuracy dari ketiga model sangat tinggi (sekitar 95%), yang menunjukkan bahwa model mampu memprediksi dengan sangat baik pada data uji.
+
+    - Precision untuk kelas 1 (diabetes) relatif rendah di semua model. Ini berarti bahwa ketika model memprediksi seseorang memiliki stroke (kelas 1), prediksi tersebut sering kali salah.
+        * Random Forest memiliki precision 0.33, yang terendah.
+        * XGBoost memiliki precision 0.28.
+        * LightGBM memiliki precision 0.27.
+
+    - Recall untuk kelas 1 juga sangat rendah, yang menunjukkan bahwa model-model ini kurang efektif dalam mengidentifikasi semua pasien yang sebenarnya memiliki stroke.
+        * Random Forest memiliki recall yang sangat buruk, hanya 0.01.
+        * XGBoost memiliki recall 0.12, yang terbaik di antara ketiganya, tetapi masih rendah.
+        * LightGBM memiliki recall 0.06.
+
+    - F1-score, yang merupakan rata-rata harmonik dari precision dan recall, juga rendah. Ini mencerminkan trade-off antara precision dan recall yang buruk dalam memprediksi stroke.
+        * Random Forest memiliki F1-score terendah, 0.03.
+        * XGBoost memiliki F1-score 0.16.
+        * LightGBM memiliki F1-score 0.10.
+
+    Berdasarkan hasil evaluasi, model **`LightGBM`** menunjukkan akurasi tertinggi **(0.9705)**, tetapi perbedaannya dengan **XGBoost** dan **Random Forest sangat** kecil. Mengingat keseimbangan antara Precision dan Recall, XGBoost dipilih sebagai solusi final karena memiliki kombinasi Precision dan Recall yang lebih baik dibandingkan model lain.
+
+2. Confusion Matrix :
+
+    | Model         |    Actual           | Predicted Negatif (0) |  Predicted Positif (1)  |
+    | -----         |----------------     |---------------        |--------------------     |
+    |Random Forest  | Actual Negatif (0)  | 1463             	  | 2                     |
+    |Random Forest  | Actual Positif (1)  | 67               	  | 1                    |
+    |XGBoost        | Actual Negatif (0)  | 1444             	  | 21                      |
+    |XGBoost        | Actual Positif (1)  | 60               	  | 8                    |
+    |LightGBM       | Actual Negatif (0)  | 1454            	  | 11                      |
+    |LightGBM       | Actual Positif (1)  | 64               	  | 4                    |
+
+    Berdasarkan confusion matrix, ketiga model memiliki performa yang sangat baik dalam mengklasifikasikan kasus negatif, yaitu pasien yang tidak mengalami stroke, dengan jumlah True Negative yang tinggi dan False Positive yang sangat rendah. Ini menunjukkan bahwa model jarang salah memprediksi seseorang tidak mengalami stroke. Namun, terdapat perbedaan dalam menangani kasus positif, yaitu pasien yang mengalami stroke. Random Forest memiliki jumlah False Negative tertinggi (67), yang berarti model ini paling banyak melewatkan kasus stroke dibandingkan model lain. Hanya 1 kasus stroke yang terdeteksi dengan benar. LightGBM memiliki 64 False Negative, sedikit lebih baik dari Random Forest, tetapi masih mengindikasikan banyak kasus stroke yang tidak terdeteksi. XGBoost memiliki jumlah False Negative terendah (60), menunjukkan bahwa model ini paling sedikit melewatkan kasus stroke. Selain itu, Random Forest memiliki False Positive terendah (2), yang berarti model ini paling jarang salah memprediksi seseorang mengalami stroke padahal tidak. LightGBM memiliki 11 False Positive, sedikit lebih banyak dari Random Forest. XGBoost memiliki 21 False Positive, yang terbanyak di antara ketiga model, menunjukkan kecenderungan untuk sedikit lebih sering salah memprediksi seseorang mengalami stroke. Meskipun ketiga model sangat baik dalam mengidentifikasi pasien yang tidak mengalami stroke, terdapat perbedaan signifikan dalam kemampuan mereka mendeteksi kasus stroke. XGBoost menunjukkan keseimbangan terbaik dalam hal ini, dengan jumlah False Negative terendah (paling sedikit melewatkan kasus stroke) meskipun memiliki jumlah False Positive tertinggi (sedikit lebih banyak salah memprediksi stroke). Namun, perlu diingat bahwa dalam konteks medis, mengurangi False Negative (gagal mendeteksi stroke) sering kali lebih penting daripada mengurangi False Positive, karena gagal mendeteksi stroke dapat menunda penanganan yang kritis.
