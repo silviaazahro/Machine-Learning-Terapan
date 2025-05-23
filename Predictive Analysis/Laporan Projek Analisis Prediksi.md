@@ -40,3 +40,35 @@ Berdasarkan temuan-temuan ini, penerapan machine learning dalam prediksi stroke 
 - **`bmi`** : Indeks Massa Tubuh pasien, ukuran lemak tubuh berdasarkan berat dan tinggi badan. BMI yang tinggi meningkatkan risiko stroke.
 - **`smoking_status`** : Status merokok pasien, yang mencakup kategori seperti "never smoked" (tidak pernah merokok), "formerly smoked" (pernah merokok), "smokes" (merokok saat ini), dan "unknown" (tidak diketahui). Merokok adalah faktor risiko utama stroke.
 - **`stroke`** : Variabel target, dengan nilai 1 jika pasien pernah mengalami stroke dan 0 jika tidak.
+
+### Visualisasi Distribusi Data Numerik
+Visualisasi distribusi variabel menunjukkan bahwa **age** memiliki sebaran yang relatif normal dengan sedikit skew ke kanan, **bmi** menunjukkan distribusi yang cenderung right-skewed dengan puncak tajam di sekitar nilai 29–30, sementara **avg_glucose_level** memperlihatkan distribusi yang multimodal dengan beberapa puncak, termasuk lonjakan signifikan pada nilai tinggi.
+
+![Numerik](Predictive Analysis/Distribusi Numerik.png)
+
+### Visualisasi Distribusi Data Kategori
+Visualisasi distribusi data kategori menunjukkan bahwa jumlah individu **perempuan** lebih banyak dibandingkan laki-laki. Mayoritas sampel **tidak memiliki hipertensi maupun penyakit jantung**, terlihat dari dominasi label 0 pada kedua kategori tersebut. Sebagian besar responden juga tercatat **pernah menikah**, dan **bekerja di sektor swasta (Private)** merupakan kategori pekerjaan yang paling umum. Selain itu, distribusi tempat tinggal menunjukkan jumlah yang hampir seimbang antara individu yang tinggal di **daerah urban dan rural**.
+
+![Kategori](Predictive Analysis/Distribusi Kategorik.png)
+
+### Visualisasi Rata Rata Diabetes vs Fitur
+Visualisasi menunjukkan bahwa **laki-laki memiliki rata-rata kasus stroke sedikit lebih tinggi dibandingkan perempuan**. Individu yang memiliki **hipertensi atau penyakit jantung** menunjukkan kemungkinan stroke yang jauh lebih tinggi dibandingkan yang tidak memiliki kondisi tersebut.
+
+Selain itu, **individu yang pernah menikah (ever_married = Yes)** memiliki rata-rata stroke yang lebih tinggi dibandingkan yang belum pernah menikah. Dalam hal pekerjaan, **pekerja mandiri (self-employed)** memiliki persentase stroke tertinggi, diikuti oleh pekerja swasta (private) dan pegawai negeri (govt_job). Anak-anak dan individu yang tidak pernah bekerja memiliki kasus stroke yang sangat rendah atau tidak ada sama sekali.
+
+Distribusi berdasarkan tempat tinggal menunjukkan bahwa rata-rata kasus stroke sedikit lebih tinggi pada individu yang tinggal di daerah **urban** dibandingkan **rural**. Sementara itu, dalam kategori status merokok, **mantan perokok (formerly smoked)** memiliki rata-rata stroke tertinggi, disusul oleh perokok aktif (smokes), tidak pernah merokok (never smoked), dan yang tidak diketahui (unknown).
+
+![Mean](Predictive Analysis/MeanStrokeVSFiturLainnya.png)
+
+### Visualisasi KDE
+Visualisasi menunjukkan hubungan antara berbagai fitur dalam dataset, seperti **id, age, hypertension, heart\_disease, avg\_glucose\_level, bmi**, dan **stroke**. Scatter plot memperlihatkan distribusi titik data di antara pasangan variabel, sedangkan plot KDE di diagonal menggambarkan distribusi probabilitas dari masing-masing variabel. Dari grafik ini, beberapa fitur seperti **age, avg\_glucose\_level, dan bmi** memiliki distribusi yang lebih bervariasi, sedangkan variabel biner seperti **hypertension dan heart\_disease** memiliki titik data yang lebih terpisah tanpa pola yang jelas dalam scatter plot.
+
+![Mean](Predictive Analysis/KDE.png)
+
+### Visualisasi Correlation Matrix
+Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dari matriks korelasi ini, kita dapat mengamati bahwa fitur **age** memiliki korelasi yang cukup tinggi dengan **bmi** (0.28), menunjukkan adanya kecenderungan peningkatan indeks massa tubuh seiring bertambahnya usia. Selain itu, **avg\_glucose\_level** juga menunjukkan korelasi yang relatif lebih tinggi dengan **age** (0.20) dan **bmi** (0.15). Namun, korelasi antara fitur-fitur lain seperti **hypertension** dan **heart\_disease** dengan **stroke** tampak lebih rendah. Secara keseluruhan, matriks ini memberikan gambaran mengenai kekuatan dan arah hubungan linear antar variabel numerik dalam dataset.
+
+![Mean](Predictive Analysis/Matrik Korelasi.png)
+
+## Data Preparation
+
