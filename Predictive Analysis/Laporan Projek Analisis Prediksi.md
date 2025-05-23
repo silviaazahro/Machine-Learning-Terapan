@@ -159,7 +159,7 @@ Tahapan yang dilakukan pada proses pemodelan adalah sebagai berikut:
 3. **Evaluasi Model**: 
    Hasil pelatihan dari ketiga model dibandingkan untuk menentukan model terbaik berdasarkan metrik evaluasi.
 
-Berdasarkan hasil evaluasi (lihat bagian Evaluation), **LightGBM Classifier** dipilih sebagai model terbaik. LightGBM menunjukkan akurasi yang kompetitif dengan waktu pelatihan yang lebih cepat dan efisiensi memori yang lebih baik dibandingkan dengan Random Forest dan XGBoost. Dalam konteks prediksi stroke, kecepatan dan efisiensi dapat menjadi faktor penting dalam implementasi praktis.
+Berdasarkan hasil evaluasi (lihat bagian Evaluation), **XGBoost Classifier** dipilih sebagai model terbaik. Meskipun LightGBM menawarkan akurasi yang sebanding dengan kecepatan dan efisiensi yang lebih baik, XGBoost Classifier diputuskan sebagai model terbaik untuk prediksi stroke. Pertimbangan utama adalah bahwa dalam kasus stroke, biaya False Negative (gagal mendeteksi stroke) jauh lebih tinggi daripada biaya False Positive. Oleh karena itu, XGBoost, yang menunjukkan recall yang lebih baik (kemampuan lebih baik untuk mengidentifikasi kasus stroke yang sebenarnya), dipilih meskipun mungkin membutuhkan lebih banyak sumber daya komputasi.
 
 ## Evaluation
 **Evaluasi model** dilakukan menggunakan beberapa metrik utama yang sesuai dengan konteks klasifikasi biner, yaitu **Accuracy**, **Precision**, **Recall**, **F1-Score**, dan **Confusion Matrix**. Metrik ini dipilih karena dataset yang digunakan melibatkan prediksi suatu kondisi (kemungkinan diabetes) di mana keseimbangan antara deteksi positif dan negatif sangat penting.
@@ -167,16 +167,18 @@ Berdasarkan hasil evaluasi (lihat bagian Evaluation), **LightGBM Classifier** di
 Metrik Evaluasi yang Digunakan
 1. **`Accuracy Score`** :
 - **Accuracy**: Persentase prediksi yang benar dari seluruh prediksi.
-
+   Formula:  `Akurasi = (Jumlah prediksi benar) / (Total jumlah prediksi)`
         ```python
         test_acc = accuracy_score(y_test, y_test_pred)
         ```
     
 2. **`Classification Report`** :
-    - **Precision**: Proporsi prediksi positif yang benar.   
+    - **Precision**: Proporsi prediksi positif yang benar.
+      Formula = `Precision = (Jumlah TP) / (Jumlah TP + Jumlah FP)`  
     - **Recall (Sensitivity)**: Proporsi kasus positif yang berhasil dideteksi.
+      Formula = `Recall = (Jumlah TP) / (Jumlah TP + Jumlah FN)`
     - **F1-Score**: Rata-rata harmonik antara Precision dan Recall, yang memberikan gambaran keseimbangan antara keduanya.    
-
+      Formula = `F1-score = 2 * (Precision * Recall) / (Precision + Recall)`
         ```python
         print("\n--- Classification Report (Test) ---\n", classification_report(y_test, y_test_pred))
         ```
