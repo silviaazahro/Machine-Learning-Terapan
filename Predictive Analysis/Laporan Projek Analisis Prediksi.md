@@ -25,7 +25,7 @@ Berdasarkan temuan-temuan ini, penerapan machine learning dalam prediksi stroke 
 2. Melakukan analisis hasil model berdasarkan metrik evaluasi untuk memilih model terbaik yang mampu memberikan prediksi paling akurat.
 
 ## Data Understanding
-**`Stroke prediction dataset`** merupakan kumpulan data medis dan demografi dari pasien, beserta status stroke mereka (positif atau negatif). Data tersebut mencakup fitur-fitur seperti usia, jenis kelamin, indeks massa tubuh (IMT/BMI), hipertensi, penyakit jantung, riwayat merokok, status menikah, tipe pekerjaan, tipe tempat tinggal, dan kadar glukosa darah. Dataset berjumlah 12 kolom, 5110 baris dan dataset bersih tidak ada missing values, dataset ini diambil dari platform **[Kaggle](https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset)**.
+**`Stroke prediction dataset`** merupakan kumpulan data medis dan demografi dari pasien, beserta status stroke mereka (positif atau negatif). Data tersebut mencakup fitur-fitur seperti usia, jenis kelamin, indeks massa tubuh (IMT/BMI), hipertensi, penyakit jantung, riwayat merokok, status menikah, tipe pekerjaan, tipe tempat tinggal, dan kadar glukosa darah. Dataset berjumlah 12 kolom, 5110 baris dan dataset kotor yang masih terdapat 201 missing values pada kolom BMI, dataset ini diambil dari platform **[Kaggle](https://www.kaggle.com/datasets/fedesoriano/stroke-prediction-dataset)**.
 
 ### Variabel-variabel pada dataset prediksi penyakit stroke adalah sebagai berikut:
 - **`id`** : Nomor identifikasi unik untuk setiap pasien dalam dataset.
@@ -74,22 +74,28 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
 
 1.  **Teknik Data Preparation yang Diterapkan:**
     * **Penanganan Missing Value:**
-        * Teknik: Imputasi dengan nilai median.
+        * Teknik: Imputasi dengan nilai mean dan median.
         * Kode Snippet:
             ```python
+            df['bmi'].fillna(df['bmi'].mean(), inplace=True)
             df['bmi'].fillna(df['bmi'].median(), inplace=True)
             ```
         * Proses: Missing value pada fitur `bmi` diisi dengan nilai median dari fitur tersebut.
-        * Alasan: Fitur `bmi` memiliki missing value yang cukup signifikan. Imputasi dengan median dipilih karena median robust terhadap outlier, yang mungkin ada dalam distribusi `bmi`. Hal ini mencegah outlier mendistorsi representasi tipikal dari data.
+        * Alasan: Fitur `bmi` memiliki missing value yang cukup signifikan. Imputasi dengan median dipilih karena mean dan median robust terhadap outlier, yang mungkin ada dalam distribusi `bmi`. Hal ini mencegah outlier mendistorsi representasi tipikal dari data.
     * **Encoding Variabel Kategorikal:**
         * Teknik: One-Hot Encoding.
         * Kode Snippet:
             ```python
-            categorical_cols = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
-            df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+            fitur_kategorikal = ['gender', 'ever_married', 'work_type', 'Residence_type', 'smoking_status']
+            ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
+            hasil_encoding = ohe.fit_transform(df[fitur_kategorikal])
+            df_encoded = pd.DataFrame(hasil_encoding, columns=ohe.get_feature_names_out(fitur_kategorikal), index=df.index)
+            df.drop(columns=fitur_kategorikal, inplace=True)
+            df = pd.concat([df, df_encoded], axis=1)
             ```
-        * Proses: Variabel kategorikal diubah menjadi variabel dummy/indikator biner. Parameter `drop_first=True` digunakan untuk menghindari multikolinearitas.
-        * Alasan: Model machine learning umumnya memerlukan input numerik. One-Hot Encoding mengubah kategori menjadi format yang dapat diproses model, tanpa memberikan asumsi ordinalitas yang tidak tepat.
+      **Proses:** Variabel kategorikal diubah menjadi variabel dummy/indikator biner menggunakan `OneHotEncoder` dari `sklearn.preprocessing`. `OneHotEncoder` cocok digunakan dalam pipeline dan mendukung transformasi yang konsisten antara data pelatihan dan pengujian. Parameter `drop='first'` dapat digunakan untuk menghindari multikolinearitas.
+      **Alasan:** Model machine learning umumnya memerlukan input numerik. One-Hot Encoding mengubah kategori menjadi format yang dapat diproses model, tanpa memberikan asumsi ordinalitas yang tidak tepat. Dibandingkan `pd.get_dummies`, `OneHotEncoder` lebih fleksibel, terutama saat mengaplikasikan transformasi yang sama ke data baru, karena encoder dapat disimpan dan digunakan ulang menggunakan metode `fit` dan `transform`.
+
     * **Penanganan Outlier pada Fitur `gender`:**
         * Teknik: Penggantian nilai.
         * Kode Snippet:
@@ -113,21 +119,39 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
         * Teknik: Train-Test Split.
         * Kode Snippet:
             ```python
-            X = df.drop('stroke', axis=1)
-            y = df['stroke']
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-            X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+            fitur = df.drop(columns=["stroke"])
+            target = df["stroke"]
+            X_train, X_test, y_train, y_test = train_test_split(fitur, target, test_size=0.3, random_state=123)
+            X_train, X_val, y_train, y_val = train_test_split(fitur, target, test_size=0.3, random_state=123)
             ```
-        * Proses: Data dibagi menjadi set pelatihan (80%) dan pengujian (20%). Set pelatihan selanjutnya dibagi menjadi set pelatihan (80%) dan validasi (20%).
+        * Proses: Data dibagi menjadi set pelatihan (70%) dan pengujian (30%). Set pelatihan selanjutnya dibagi menjadi set pelatihan (70%) dan validasi (30%).
         * Alasan: Pembagian ini memungkinkan pelatihan model pada sebagian data dan evaluasi pada data yang belum dilihat sebelumnya (data uji) untuk mengukur generalisasi. Set validasi digunakan untuk validasi model.
 
 ## Modelling
 Pada studi kali ini, model yang digunakan adalah **Random Forest**, **XGBoost**, dan **LightGBM** untuk memprediksi kemungkinan seseorang mengidap diabetes berdasarkan fitur-fitur yang ada. Alasan pemilihan ketiga model tersebut adalah:
-- **Random Forest**: Model ini merupakan metode ensemble yang menggabungkan banyak decision tree. Kelebihannya adalah mampu menangani data non-linear dan tidak mudah overfitting. Namun, model ini cenderung lebih lambat dalam proses pelatihan dibandingkan model boosting.
-- **XGBoost**: Merupakan model boosting dengan optimasi regularisasi yang membantu menghindari overfitting. XGBoost bekerja sangat baik pada data tabular dan sering memberikan performa yang tinggi, meskipun waktu pelatihannya lebih lama dibandingkan LightGBM.
-- **LightGBM**: Model boosting yang cepat dan efisien, sangat cocok untuk dataset besar. Namun, LightGBM dapat lebih sensitif terhadap outlier dibandingkan dengan Random Forest dan XGBoost.
+- ### Penjelasan Model dan Alasan Pemilihan Parameter
+**Random Forest:**  
+Model ini merupakan metode ensemble yang menggabungkan banyak decision tree melalui teknik bagging (bootstrap aggregating). Setiap pohon dilatih pada subset data yang berbeda secara acak dan hasil akhirnya diambil melalui voting (klasifikasi) atau rata-rata (regresi).  
+- **Kelebihan:** Mampu menangani data non-linear, robust terhadap overfitting karena rata-rata antar pohon, dan bekerja baik tanpa banyak tuning.
+- **Kekurangan:** Proses pelatihan lebih lambat dibanding model boosting, serta interpretabilitas lebih rendah karena kompleksitas ensemble.
 
-Tahapan yang dilakukan pada proses pemodelan adalah sebagai berikut:
+**XGBoost (Extreme Gradient Boosting):**  
+Merupakan model boosting yang membangun pohon secara berurutan, di mana setiap pohon baru berusaha memperbaiki kesalahan dari pohon sebelumnya. XGBoost menggunakan teknik regularisasi (L1 dan L2) untuk menghindari overfitting dan mengoptimalkan performa.
+- **Mekanisme:** Berdasarkan prinsip gradient boosting, di mana loss function diminimalkan secara iteratif melalui pendekatan gradien.
+- **eval_metric='logloss':**  
+  Digunakan dalam masalah klasifikasi biner untuk mengevaluasi seberapa baik model memprediksi probabilitas. Log-loss menghukum prediksi yang jauh dari label aktual, sehingga cocok untuk mengukur kualitas probabilistik prediksi.
+- **n_estimators=100:**  
+  Menentukan jumlah pohon (iterasi boosting). Nilai 100 dipilih sebagai default yang cukup umum, memberikan keseimbangan antara akurasi dan waktu pelatihan. Namun, nilainya bisa dioptimasi lebih lanjut melalui tuning hyperparameter (misalnya dengan cross-validation).
+
+**LightGBM (Light Gradient Boosting Machine):**  
+Model boosting yang dirancang untuk efisiensi dan kecepatan. LightGBM menggunakan teknik histogram-based dan leaf-wise tree growth, yang membuatnya lebih cepat dan efisien dalam memori dibanding XGBoost.
+- **Kelebihan:** Sangat cepat dalam pelatihan, cocok untuk dataset besar, mendukung paralelisasi.
+- **Kekurangan:** Lebih sensitif terhadap outlier dan bisa lebih mudah overfitting jika tidak dikontrol dengan parameter regularisasi seperti `max_depth` atau `min_child_samples`.
+
+### Kesimpulan:
+Pemilihan model dan konfigurasi seperti `n_estimators=100` atau `eval_metric='logloss'` harus disesuaikan dengan karakteristik data dan tujuan model. Tanpa memahami prinsip kerja dasar masing-masing algoritma, sulit untuk menilai apakah parameter tersebut sudah optimal. Oleh karena itu, pemahaman menyeluruh terhadap mekanisme model sangat penting dalam proses pemodelan machine learning.
+
+### Tahapan yang dilakukan pada proses pemodelan adalah sebagai berikut:
 1. **`Load Model`**:
 
    - **Random Forest** diload dengan parameter `n_estimators=100` dan `random_state=123`:
@@ -162,7 +186,7 @@ Tahapan yang dilakukan pada proses pemodelan adalah sebagai berikut:
 Berdasarkan hasil evaluasi (lihat bagian Evaluation), **XGBoost Classifier** dipilih sebagai model terbaik. Meskipun LightGBM menawarkan akurasi yang sebanding dengan kecepatan dan efisiensi yang lebih baik, XGBoost Classifier diputuskan sebagai model terbaik untuk prediksi stroke. Pertimbangan utama adalah bahwa dalam kasus stroke, biaya False Negative (gagal mendeteksi stroke) jauh lebih tinggi daripada biaya False Positive. Oleh karena itu, XGBoost, yang menunjukkan recall yang lebih baik (kemampuan lebih baik untuk mengidentifikasi kasus stroke yang sebenarnya), dipilih meskipun mungkin membutuhkan lebih banyak sumber daya komputasi.
 
 ## Evaluation
-**Evaluasi model** dilakukan menggunakan beberapa metrik utama yang sesuai dengan konteks klasifikasi biner, yaitu **Accuracy**, **Precision**, **Recall**, **F1-Score**, dan **Confusion Matrix**. Metrik ini dipilih karena dataset yang digunakan melibatkan prediksi suatu kondisi (kemungkinan diabetes) di mana keseimbangan antara deteksi positif dan negatif sangat penting.
+**Evaluasi model** dilakukan menggunakan beberapa metrik utama yang sesuai dengan konteks klasifikasi biner, yaitu **Accuracy**, **Precision**, **Recall**, **F1-Score**, dan **Confusion Matrix**. Metrik ini dipilih karena dataset yang digunakan melibatkan prediksi suatu kondisi (kemungkinan stroke) di mana keseimbangan antara deteksi positif dan negatif sangat penting.
 
 Metrik Evaluasi yang Digunakan
 1. **`Accuracy Score`** :
@@ -206,7 +230,7 @@ Berikut adalah ringkasan hasil evaluasi berdasarkan prediksi pada data :
     Analisis Hasil
     - Accuracy dari ketiga model sangat tinggi (sekitar 95%), yang menunjukkan bahwa model mampu memprediksi dengan sangat baik pada data uji.
 
-    - Precision untuk kelas 1 (diabetes) relatif rendah di semua model. Ini berarti bahwa ketika model memprediksi seseorang memiliki stroke (kelas 1), prediksi tersebut sering kali salah.
+    - Precision untuk kelas 1 (stroke) relatif rendah di semua model. Ini berarti bahwa ketika model memprediksi seseorang memiliki stroke (kelas 1), prediksi tersebut sering kali salah.
         * Random Forest memiliki precision 0.33, yang terendah.
         * XGBoost memiliki precision 0.28.
         * LightGBM memiliki precision 0.27.
