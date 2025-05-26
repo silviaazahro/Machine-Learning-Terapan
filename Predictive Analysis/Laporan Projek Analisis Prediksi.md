@@ -51,7 +51,7 @@ Visualisasi distribusi data kategori menunjukkan bahwa jumlah individu **perempu
 
 ![Distribusi Kategorik](https://github.com/silviaazahro/Machine-Learning-Terapan/raw/main/Predictive%20Analysis/Distribusi%20Kategorik.png)
 
-### Visualisasi Rata Rata Diabetes vs Fitur
+### Visualisasi Rata Rata Stroke vs Fitur
 Visualisasi menunjukkan bahwa **laki-laki memiliki rata-rata kasus stroke sedikit lebih tinggi dibandingkan perempuan**. Individu yang memiliki **hipertensi atau penyakit jantung** menunjukkan kemungkinan stroke yang jauh lebih tinggi dibandingkan yang tidak memiliki kondisi tersebut.
 
 Selain itu, **individu yang pernah menikah (ever_married = Yes)** memiliki rata-rata stroke yang lebih tinggi dibandingkan yang belum pernah menikah. Dalam hal pekerjaan, **pekerja mandiri (self-employed)** memiliki persentase stroke tertinggi, diikuti oleh pekerja swasta (private) dan pegawai negeri (govt_job). Anak-anak dan individu yang tidak pernah bekerja memiliki kasus stroke yang sangat rendah atau tidak ada sama sekali.
@@ -128,7 +128,7 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
         * Alasan: Pembagian ini memungkinkan pelatihan model pada sebagian data dan evaluasi pada data yang belum dilihat sebelumnya (data uji) untuk mengukur generalisasi. Set validasi digunakan untuk validasi model.
 
 ## Modelling
-Pada studi kali ini, model yang digunakan adalah **Random Forest**, **XGBoost**, dan **LightGBM** untuk memprediksi kemungkinan seseorang mengidap diabetes berdasarkan fitur-fitur yang ada. Alasan pemilihan ketiga model tersebut adalah:
+Pada studi kali ini, model yang digunakan adalah **Random Forest**, **XGBoost**, dan **LightGBM** untuk memprediksi kemungkinan seseorang mengidap Stroke berdasarkan fitur-fitur yang ada. Alasan pemilihan ketiga model tersebut adalah:
 - ### Penjelasan Model dan Alasan Pemilihan Parameter
 **Random Forest:**  
 Model ini merupakan metode ensemble yang menggabungkan banyak decision tree melalui teknik bagging (bootstrap aggregating). Setiap pohon dilatih pada subset data yang berbeda secara acak dan hasil akhirnya diambil melalui voting (klasifikasi) atau rata-rata (regresi).  
