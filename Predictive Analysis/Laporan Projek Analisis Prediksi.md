@@ -98,7 +98,7 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
        df[kolom] = np.clip(df[kolom], batas_bawah, batas_atas)
 ```
 
-    * **Encoding Variabel Kategorikal:**
+   * **Encoding Variabel Kategorikal:**
         * Teknik: One-Hot Encoding.
         * Kode Snippet:
             ```python
