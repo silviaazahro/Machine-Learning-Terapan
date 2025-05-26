@@ -13,7 +13,7 @@ Berdasarkan temuan-temuan ini, penerapan machine learning dalam prediksi stroke 
 ## Business Understanding
 
 ### Problem Statements
-1. Bagaimana cara memprediksi kemungkinan seorang mengidap stroke berdasarkan fakto-faktor kesehatan yang dialami?
+1. Bagaimana cara memprediksi kemungkinan seorang mengidap stroke berdasarkan faktor-faktor kesehatan yang dialami?
 2. Seberapa akurat model dapat memprediksi dibandingkan dengan metode konvensional dalam mendeteksi stroke?
 
 ### Goals
