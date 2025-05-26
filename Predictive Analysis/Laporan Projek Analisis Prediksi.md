@@ -82,6 +82,20 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
             ```
         * Proses: Missing value pada fitur `bmi` diisi dengan nilai median dari fitur tersebut.
         * Alasan: Fitur `bmi` memiliki missing value yang cukup signifikan. Imputasi dengan median dipilih karena mean dan median robust terhadap outlier, yang mungkin ada dalam distribusi `bmi`. Hal ini mencegah outlier mendistorsi representasi tipikal dari data.
+   * **`Handling Outlier`** : Outlier dicari pada kolom numerik dengan metode IQR, setelah outlier terdeteksi akan diterapkan clipping pada nilai yang berada di luar batas yang telah ditentukan. Outlier dapat memberikan pengaruh yang berlebihan pada proses pelatihan model. Dengan clipping, nilai ekstrim dihilangkan atau dibatasi, sehingga model dapat belajar dari data yang lebih representatif.
+    ```python
+   fitur_numerik = ['age', 'bmi', 'avg_glucose_level']
+   nilai_outlier = {}
+   for kolom in fitur_numerik:
+       kuartil_1 = np.percentile(df[kolom].dropna(), 25)
+       kuartil_3 = np.percentile(df[kolom].dropna(), 75)
+       rentang_iqr = kuartil_3 - kuartil_1
+       batas_bawah = kuartil_1 - 1.5 * rentang_iqr
+       batas_atas = kuartil_3 + 1.5 * rentang_iqr
+       outlier = df[kolom][(df[kolom] < batas_bawah) | (df[kolom] > batas_atas)]
+       nilai_outlier[kolom] = outlier
+       df[kolom] = np.clip(df[kolom], batas_bawah, batas_atas)
+     ```
     * **Encoding Variabel Kategorikal:**
         * Teknik: One-Hot Encoding.
         * Kode Snippet:
@@ -95,23 +109,13 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
             ```
       **Proses:** Variabel kategorikal diubah menjadi variabel dummy/indikator biner menggunakan `OneHotEncoder` dari `sklearn.preprocessing`. `OneHotEncoder` cocok digunakan dalam pipeline dan mendukung transformasi yang konsisten antara data pelatihan dan pengujian. Parameter `drop='first'` dapat digunakan untuk menghindari multikolinearitas.
       **Alasan:** Model machine learning umumnya memerlukan input numerik. One-Hot Encoding mengubah kategori menjadi format yang dapat diproses model, tanpa memberikan asumsi ordinalitas yang tidak tepat. Dibandingkan `pd.get_dummies`, `OneHotEncoder` lebih fleksibel, terutama saat mengaplikasikan transformasi yang sama ke data baru, karena encoder dapat disimpan dan digunakan ulang menggunakan metode `fit` dan `transform`.
-
-    * **Penanganan Outlier pada Fitur `gender`:**
-        * Teknik: Penggantian nilai.
-        * Kode Snippet:
-            ```python
-            gender_mode = df['gender'].mode()[0]
-            df['gender'] = df['gender'].replace('Other', gender_mode)
-            ```
-        * Proses: Nilai 'Other' dalam fitur `gender` diganti dengan modus (nilai terbanyak) dari fitur tersebut.
-        * Alasan: Hanya terdapat satu sampel dengan kategori 'Other', yang dapat mengganggu analisis. Menggantinya dengan modus menjaga konsistensi dan mencegah bias.
     * **Scaling Fitur Numerik:**
         * Teknik: StandardScaler.
         * Kode Snippet:
             ```python
-            numerical_cols = ['age', 'avg_glucose_level', 'bmi']
-            scaler = StandardScaler()
-            df[numerical_cols] = scaler.fit_transform(df[numerical_cols])
+            fitur_numerik = ['age', 'bmi', 'avg_glucose_level']
+            standarisasi = StandardScaler()
+            df[fitur_numerik] = standarisasi.fit_transform(df[fitur_numerik])
             ```
         * Proses: Fitur numerik diubah skalanya sehingga memiliki mean 0 dan standar deviasi 1.
         * Alasan: Scaling menyamakan rentang nilai fitur, yang penting untuk algoritma yang sensitif terhadap skala data (misalnya, algoritma berbasis jarak). Ini mencegah fitur dengan rentang besar mendominasi fitur dengan rentang kecil.
