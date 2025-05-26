@@ -83,7 +83,8 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
         * Proses: Missing value pada fitur `bmi` diisi dengan nilai median dari fitur tersebut.
         * Alasan: Fitur `bmi` memiliki missing value yang cukup signifikan. Imputasi dengan median dipilih karena mean dan median robust terhadap outlier, yang mungkin ada dalam distribusi `bmi`. Hal ini mencegah outlier mendistorsi representasi tipikal dari data.
    * **`Handling Outlier`** : Outlier dicari pada kolom numerik dengan metode IQR, setelah outlier terdeteksi akan diterapkan clipping pada nilai yang berada di luar batas yang telah ditentukan. Outlier dapat memberikan pengaruh yang berlebihan pada proses pelatihan model. Dengan clipping, nilai ekstrim dihilangkan atau dibatasi, sehingga model dapat belajar dari data yang lebih representatif.
-    ```python
+
+```python
    fitur_numerik = ['age', 'bmi', 'avg_glucose_level']
    nilai_outlier = {}
    for kolom in fitur_numerik:
@@ -95,7 +96,8 @@ Visualisasi menunjukkan hubungan korelasi antar fitur numerik dalam dataset. Dar
        outlier = df[kolom][(df[kolom] < batas_bawah) | (df[kolom] > batas_atas)]
        nilai_outlier[kolom] = outlier
        df[kolom] = np.clip(df[kolom], batas_bawah, batas_atas)
-     ```
+```
+
     * **Encoding Variabel Kategorikal:**
         * Teknik: One-Hot Encoding.
         * Kode Snippet:
