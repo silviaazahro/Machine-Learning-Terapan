@@ -245,7 +245,7 @@ Berikut adalah ringkasan hasil evaluasi berdasarkan prediksi pada data :
         * XGBoost memiliki F1-score 0.16.
         * LightGBM memiliki F1-score 0.10.
 
-    Berdasarkan hasil evaluasi, model **`LightGBM`** menunjukkan akurasi tertinggi **(0.9705)**, tetapi perbedaannya dengan **XGBoost** dan **Random Forest sangat** kecil. Mengingat keseimbangan antara Precision dan Recall, XGBoost dipilih sebagai solusi final karena memiliki kombinasi Precision dan Recall yang lebih baik dibandingkan model lain.
+    Berdasarkan hasil evaluasi, model **`Random Forest`** menunjukkan akurasi tertinggi **(0.9550)**, tetapi perbedaannya dengan **XGBoost** dan **LightGBM** kecil. Mengingat keseimbangan antara Precision dan Recall, XGBoost dipilih sebagai solusi final karena memiliki kombinasi Precision dan Recall yang lebih baik dibandingkan model lain.
 
 2. Confusion Matrix :
 
